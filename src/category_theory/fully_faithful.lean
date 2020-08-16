@@ -3,6 +3,7 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import data.equiv.basic
 import category_theory.natural_isomorphism
 
 universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
@@ -54,25 +55,43 @@ F.map_injective (by simp)
 F.map_injective (by simp)
 
 /-- If `F : C ⥤ D` is fully faithful, every isomorphism `F.obj X ≅ F.obj Y` has a preimage. -/
-def preimage_iso (f : (F.obj X) ≅ (F.obj Y)) : X ≅ Y :=
+@[simps]
+def preimage_iso (f : F.obj X ≅ F.obj Y) : X ≅ Y :=
 { hom := F.preimage f.hom,
   inv := F.preimage f.inv,
   hom_inv_id' := F.map_injective (by simp),
   inv_hom_id' := F.map_injective (by simp), }
 
-@[simp] lemma preimage_iso_hom (f : (F.obj X) ≅ (F.obj Y)) :
-  (preimage_iso f).hom = F.preimage f.hom := rfl
-@[simp] lemma preimage_iso_inv (f : (F.obj X) ≅ (F.obj Y)) :
-  (preimage_iso f).inv = F.preimage (f.inv) := rfl
 @[simp] lemma preimage_iso_map_iso (f : X ≅ Y) : preimage_iso (F.map_iso f) = f :=
 by tidy
 
 variables (F)
 
 /--
+If `F` is a fully faithful functor then we have a bijection of homsets `(X ⟶ Y)` and
+`F.obj X ⟶ F.obj Y`.
+-/
+def equiv_of_fully_faithful {X Y} : (X ⟶ Y) ≃ (F.obj X ⟶ F.obj Y) :=
+{ to_fun := λ f, F.map f,
+  inv_fun := λ f, F.preimage f,
+  left_inv := λ f, by simp,
+  right_inv := λ f, by simp }
+
+-- We generate these two by hand rather than using `simps` on `equiv_of_fully_faithful` since
+-- this way the coercion is used, rather than `to_fun`.
+@[simp]
+lemma equiv_of_fully_faithful_apply {X Y} (f : X ⟶ Y) : equiv_of_fully_faithful F f = F.map f :=
+rfl
+@[simp]
+lemma equiv_of_fully_faithful_symmapply {X Y} (f : F.obj X ⟶ F.obj Y) :
+  (equiv_of_fully_faithful F).symm f = F.preimage f :=
+rfl
+
+/--
 If the image of a morphism under a fully faithful functor in an isomorphism,
 then the original morphisms is also an isomorphism.
 -/
+@[simps]
 def is_iso_of_fully_faithful (f : X ⟶ Y) [is_iso (F.map f)] : is_iso f :=
 { inv := F.preimage (inv (F.map f)),
   hom_inv_id' := F.map_injective (by simp),
