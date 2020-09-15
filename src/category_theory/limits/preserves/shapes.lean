@@ -75,12 +75,8 @@ lemma map_lift_comp_preserves_products_iso_hom (P : C) (g : Π j, P ⟶ f j) :
   G.map (pi.lift g) ≫ (preserves_products_iso G f).hom = pi.lift (λ j, G.map (g j)) :=
 begin
   change _ ≫ _ ≫ _ = _,
-  rw lift_comp_preserves_limits_iso_hom_assoc,
-
-  -- ext,
-  -- simp only [limit.lift_π, fan.mk_π_app, preserves_products_iso_hom_π, category.assoc],
-  -- simp only [←G.map_comp],
-  -- simp only [limit.lift_π, fan.mk_π_app],
+  ext,
+  simp,
 end
 
 end
