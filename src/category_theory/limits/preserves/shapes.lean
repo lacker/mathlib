@@ -47,7 +47,8 @@ lemma lift_comp_preserves_limits_iso_hom (t : cone F) :
 by { ext, simp [← G.map_comp] }
 end
 
-section
+section preserve_products
+
 variables {J : Type v} (f : J → C)
 variables [has_products_of_shape J C] [has_products_of_shape J D]
 variables [preserves_limits_of_shape (discrete J) G]
@@ -56,8 +57,7 @@ If `G` preserves limits, we have an isomorphism
 from the image of a product to the product of the images.
 -/
 -- TODO perhaps weaken the assumptions here, to just require the relevant limits?
-def preserves_products_iso {J : Type v} (f : J → C)
-  [has_products_of_shape J C] [has_products_of_shape J D] [preserves_limits_of_shape (discrete J) G] :
+def preserves_products_iso :
   G.obj (∏ f) ≅ ∏ (λ j, G.obj (f j)) :=
 preserves_limit_iso G (discrete.functor f) ≪≫
   has_limit.iso_of_nat_iso (discrete.nat_iso (λ j, iso.refl _))
@@ -65,18 +65,11 @@ preserves_limit_iso G (discrete.functor f) ≪≫
 @[simp, reassoc]
 lemma preserves_products_iso_hom_π (j) :
   (preserves_products_iso G f).hom ≫ pi.π _ j = G.map (pi.π f j) :=
-begin
-  change (_ ≫ _) ≫ _ = _,
-  simp,
-end
+by simp [preserves_products_iso]
 
 @[simp, reassoc]
 lemma map_lift_comp_preserves_products_iso_hom (P : C) (g : Π j, P ⟶ f j) :
   G.map (pi.lift g) ≫ (preserves_products_iso G f).hom = pi.lift (λ j, G.map (g j)) :=
-begin
-  change _ ≫ _ ≫ _ = _,
-  ext,
-  simp,
-end
+by { ext, simp [preserves_products_iso] }
 
-end
+end preserve_products
