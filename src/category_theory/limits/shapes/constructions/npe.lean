@@ -111,37 +111,37 @@ variables (G : C ⥤ D)
           [preserves_limits_of_shape (discrete J) G]
           [preserves_limits_of_shape (discrete (Σ p : J × J, p.1 ⟶ p.2)) G]
 
-noncomputable def preserves_limit_of_preserves_equalizers_and_product :
-  preserves_limits_of_shape J G :=
-{ preserves_limit := λ K,
-  preserves_limit_of_preserves_limit_cone
-  (built_is_limit
-    (pi.lift (λ f, limit.π _ _ ≫ K.map f.2))
-    (pi.lift (λ f, limit.π _ f.1.2))
-    (by simp)
-    (by simp)
-    (limit.is_limit _) (limit.is_limit _) (limit.is_limit _))
-  begin
-    -- apply built_is_limit _ _ _ _ _ _ _,
-    apply is_limit.of_iso_limit (built_is_limit _ _ _ _ _ _ _) _,
-    -- { exact fan.mk (λ j, G.map (pi.π _ j)) },
-    -- { exact fan.mk (λ j, G.map (pi.π _ _)) },
+-- noncomputable def preserves_limit_of_preserves_equalizers_and_product :
+--   preserves_limits_of_shape J G :=
+-- { preserves_limit := λ K,
+--   preserves_limit_of_preserves_limit_cone
+--   (built_is_limit
+--     (pi.lift (λ f, limit.π _ _ ≫ K.map f.2))
+--     (pi.lift (λ f, limit.π _ f.1.2))
+--     (by simp)
+--     (by simp)
+--     (limit.is_limit _) (limit.is_limit _) (limit.is_limit _))
+--   begin
+--     -- apply built_is_limit _ _ _ _ _ _ _,
+--     apply is_limit.of_iso_limit (built_is_limit _ _ _ _ _ _ _) _,
+--     -- { exact fan.mk (λ j, G.map (pi.π _ j)) },
+--     -- { exact fan.mk (λ j, G.map (pi.π _ _)) },
 
-    -- sorry,
-    -- -- { exact is_limit.lift (preserves_limit.preserves (limit.is_limit (discrete.functor K.obj))) { X := G.obj (pi_obj K.obj), π := { app := λ j, G.map (limit.π (discrete.functor K.obj) j) } } },
-    -- sorry,
-    -- -- { refine
-    -- --     is_limit.lift
-    -- --       (preserves_limit.preserves (limit.is_limit (discrete.functor K.obj)))
-    -- --       { X := G.obj _, π := { app := λ j, G.map (limit.π _ _) } } },
-    -- rintro ⟨⟨j₁, j₂⟩, f⟩,
-    -- dsimp,
-    -- sorry,
-    -- rintro ⟨⟨j₁, j₂⟩, f⟩,
-    -- dsimp,
+--     -- sorry,
+--     -- -- { exact is_limit.lift (preserves_limit.preserves (limit.is_limit (discrete.functor K.obj))) { X := G.obj (pi_obj K.obj), π := { app := λ j, G.map (limit.π (discrete.functor K.obj) j) } } },
+--     -- sorry,
+--     -- -- { refine
+--     -- --     is_limit.lift
+--     -- --       (preserves_limit.preserves (limit.is_limit (discrete.functor K.obj)))
+--     -- --       { X := G.obj _, π := { app := λ j, G.map (limit.π _ _) } } },
+--     -- rintro ⟨⟨j₁, j₂⟩, f⟩,
+--     -- dsimp,
+--     -- sorry,
+--     -- rintro ⟨⟨j₁, j₂⟩, f⟩,
+--     -- dsimp,
 
-  end
+--   end
 
-}
+-- }
 
 end category_theory.limits
