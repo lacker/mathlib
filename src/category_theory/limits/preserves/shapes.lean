@@ -10,68 +10,77 @@ universes v u₁ u₂
 
 noncomputable theory
 
-open category_theory
-open category_theory.limits
+open category_theory category_theory.category category_theory.limits
 
 variables {C : Type u₁} [category.{v} C]
 variables {D : Type u₂} [category.{v} D]
-variables (G : C ⥤ D) [preserves_limits G]
+variables (G : C ⥤ D)
 
 section
 variables {J : Type v} [small_category J]
-
+variables (F : J ⥤ C) [has_limit F] [has_limit (F ⋙ G)] [preserves_limit F G]
 /--
 If `G` preserves limits, we have an isomorphism from the image of the limit of a functor `F`
 to the limit of the functor `F ⋙ G`.
 -/
-def preserves_limits_iso (F : J ⥤ C) [has_limit F] [has_limit (F ⋙ G)] :
-  G.obj (limit F) ≅ limit (F ⋙ G) :=
-(cones.forget _).map_iso
-  (is_limit.unique_up_to_iso
-    (preserves_limit.preserves (limit.is_limit F))
-    (limit.is_limit (F ⋙ G)))
+def preserves_limit_iso : G.obj (limit F) ≅ limit (F ⋙ G) :=
+(preserves_limit.preserves (limit.is_limit _)).cone_point_unique_up_to_iso (limit.is_limit _)
 
 @[simp, reassoc]
-lemma preserves_limits_iso_hom_π
-  (F : J ⥤ C) [has_limit F] [has_limit (F ⋙ G)] (j) :
-  (preserves_limits_iso G F).hom ≫ limit.π _ j = G.map (limit.π F j) :=
-begin
-  dsimp [preserves_limits_iso, has_limit.iso_of_nat_iso, cones.postcompose,
-    is_limit.unique_up_to_iso, is_limit.lift_cone_morphism],
-  simp,
+lemma preserves_limits_iso_hom_π (j) :
+  (preserves_limit_iso G F).hom ≫ limit.π _ j = G.map (limit.π F j) :=
+is_limit.cone_point_unique_up_to_iso_hom_comp _ _ j
+
+@[simp, reassoc]
+lemma preserves_limits_iso_inv_π (j) :
+  (preserves_limit_iso G F).inv ≫ G.map (limit.π F j) = limit.π _ j :=
+is_limit.cone_point_unique_up_to_iso_inv_comp _ _ j
+
+@[simp]
+lemma preserves_lift_map_cone (c₁ c₂ : cone F) (t : is_limit c₁) :
+  (preserves_limit.preserves t).lift (G.map_cone _) = G.map (t.lift c₂) :=
+((preserves_limit.preserves t).uniq (G.map_cone _) _ (by simp [← G.map_comp])).symm
+
+@[simp, reassoc]
+lemma lift_comp_preserves_limits_iso_hom (t : cone F) :
+  G.map (limit.lift _ t) ≫ (preserves_limit_iso G F).hom = limit.lift (F ⋙ G) (G.map_cone _) :=
+by { ext, simp [← G.map_comp] }
 end
 
+section
+variables {J : Type v} (f : J → C)
+variables [has_products_of_shape J C] [has_products_of_shape J D]
+variables [preserves_limits_of_shape (discrete J) G]
 /--
 If `G` preserves limits, we have an isomorphism
 from the image of a product to the product of the images.
 -/
 -- TODO perhaps weaken the assumptions here, to just require the relevant limits?
-def preserves_products_iso {J : Type v} (f : J → C) [has_limits C] [has_limits D] :
-  G.obj (pi_obj f) ≅ pi_obj (λ j, G.obj (f j)) :=
-preserves_limits_iso G (discrete.functor f) ≪≫
+def preserves_products_iso {J : Type v} (f : J → C)
+  [has_products_of_shape J C] [has_products_of_shape J D] [preserves_limits_of_shape (discrete J) G] :
+  G.obj (∏ f) ≅ ∏ (λ j, G.obj (f j)) :=
+preserves_limit_iso G (discrete.functor f) ≪≫
   has_limit.iso_of_nat_iso (discrete.nat_iso (λ j, iso.refl _))
 
 @[simp, reassoc]
-lemma preserves_products_iso_hom_π
-  {J : Type v} (f : J → C) [has_limits C] [has_limits D] (j) :
+lemma preserves_products_iso_hom_π (j) :
   (preserves_products_iso G f).hom ≫ pi.π _ j = G.map (pi.π f j) :=
 begin
-  dsimp [preserves_products_iso, preserves_limits_iso, has_limit.iso_of_nat_iso, cones.postcompose,
-    is_limit.unique_up_to_iso, is_limit.lift_cone_morphism],
-  simp only [limit.lift_π, discrete.nat_iso_hom_app, limit.cone_π, limit.lift_π_assoc,
-    nat_trans.comp_app, category.assoc, functor.map_cone_π],
-  dsimp, simp, -- See note [dsimp, simp],
+  change (_ ≫ _) ≫ _ = _,
+  simp,
 end
 
 @[simp, reassoc]
-lemma map_lift_comp_preserves_products_iso_hom
-  {J : Type v} (f : J → C) [has_limits C] [has_limits D] (P : C) (g : Π j, P ⟶ f j) :
+lemma map_lift_comp_preserves_products_iso_hom (P : C) (g : Π j, P ⟶ f j) :
   G.map (pi.lift g) ≫ (preserves_products_iso G f).hom = pi.lift (λ j, G.map (g j)) :=
 begin
-  ext,
-  simp only [limit.lift_π, fan.mk_π_app, preserves_products_iso_hom_π, category.assoc],
-  simp only [←G.map_comp],
-  simp only [limit.lift_π, fan.mk_π_app],
+  change _ ≫ _ ≫ _ = _,
+  rw lift_comp_preserves_limits_iso_hom_assoc,
+
+  -- ext,
+  -- simp only [limit.lift_π, fan.mk_π_app, preserves_products_iso_hom_π, category.assoc],
+  -- simp only [←G.map_comp],
+  -- simp only [limit.lift_π, fan.mk_π_app],
 end
 
 end

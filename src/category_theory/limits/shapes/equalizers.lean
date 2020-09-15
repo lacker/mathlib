@@ -208,10 +208,12 @@ abbreviation cofork.π (t : cofork f g) := t.ι.app one
 lemma fork.ι_eq_app_zero (t : fork f g) : fork.ι t = t.π.app zero := rfl
 lemma cofork.π_eq_app_one (t : cofork f g) : cofork.π t = t.ι.app one := rfl
 
+@[reassoc]
 lemma fork.condition (t : fork f g) : (fork.ι t) ≫ f = (fork.ι t) ≫ g :=
 begin
   erw [t.w left, ← t.w right], refl
 end
+@[reassoc]
 lemma cofork.condition (t : cofork f g) : f ≫ (cofork.π t) = g ≫ (cofork.π t) :=
 begin
   erw [t.w left, ← t.w right], refl
