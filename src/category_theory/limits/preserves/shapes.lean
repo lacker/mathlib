@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.limits.preserves.basic
-import category_theory.limits.shapes.products
+import category_theory.limits.shapes
 
 universes v u₁ u₂
 
@@ -73,3 +73,26 @@ lemma map_lift_comp_preserves_products_iso_hom (P : C) (g : Π j, P ⟶ f j) :
 by { ext, simp [preserves_products_iso] }
 
 end preserve_products
+
+section preserve_equalizers
+
+open category_theory.limits.walking_parallel_pair
+
+variables {X Y Z : C} {f g : X ⟶ Y} {h : Z ⟶ X}
+
+def equalizer_map_cone_limit (w : h ≫ f = h ≫ g) (hw : G.map h ≫ G.map f = G.map h ≫ G.map g) :
+  is_limit (G.map_cone (fork.of_ι h w)) ≃ is_limit (fork.of_ι (G.map h) hw) :=
+(is_limit.postcompose_hom_equiv (diagram_iso_parallel_pair _) _).symm.trans
+  (is_limit.equiv_iso_limit (fork.ext (iso.refl _) (by simp [fork.ι_eq_app_zero])))
+
+def map_is_limit_of_preserves_of_is_limit [preserves_limit (parallel_pair f g) G] (w : h ≫ f = h ≫ g)
+  (l : is_limit (fork.of_ι h w)) :
+  is_limit (fork.of_ι (G.map h) (by simp only [←G.map_comp, w]) : fork (G.map f) (G.map g)) :=
+equalizer_map_cone_limit G w _ (preserves_limit.preserves l)
+
+def is_limit_of_reflects_of_map_is_limit [reflects_limit (parallel_pair f g) G] (w : h ≫ f = h ≫ g)
+  (l : is_limit (fork.of_ι (G.map h) (by simp only [←G.map_comp, w]) : fork (G.map f) (G.map g))) :
+  is_limit (fork.of_ι h w) :=
+reflects_limit.reflects ((equalizer_map_cone_limit G w _).symm l)
+
+end preserve_equalizers

@@ -136,7 +136,6 @@ def hom_is_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) (f : s ⟶ t) : 
   inv_hom_id' := Q.uniq_cone_morphism, }
 
 /-- Limits of `F` are unique up to isomorphism. -/
--- We may later want to prove the coherence of these isomorphisms.
 def cone_point_unique_up_to_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) : s.X ≅ t.X :=
 (cones.forget F).map_iso (unique_up_to_iso P Q)
 
@@ -163,6 +162,13 @@ def of_iso_limit {r t : cone F} (P : is_limit r) (i : r ≅ t) : is_limit t :=
 is_limit.mk_cone_morphism
   (λ s, P.lift_cone_morphism s ≫ i.hom)
   (λ s m, by rw ←i.comp_inv_eq; apply P.uniq_cone_morphism)
+
+/-- Isomorphism of cones preserves whether or not they are limiting cones. -/
+def equiv_iso_limit {r t : cone F} (i : r ≅ t) : is_limit r ≃ is_limit t :=
+{ to_fun := λ h, h.of_iso_limit i,
+  inv_fun := λ h, h.of_iso_limit i.symm,
+  left_inv := by tidy,
+  right_inv := by tidy }
 
 /--
 If the canonical morphism from a cone point to a limiting cone point is an iso, then the

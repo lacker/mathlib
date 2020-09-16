@@ -125,6 +125,7 @@ end
 
 /-- Every functor indexing a (co)equalizer is naturally isomorphic (actually, equal) to a
     `parallel_pair` -/
+@[simps {rhs_md := semireducible}]
 def diagram_iso_parallel_pair (F : walking_parallel_pair ⥤ C) :
   F ≅ parallel_pair (F.map left) (F.map right) :=
 nat_iso.of_components (λ j, eq_to_iso $ by cases j; tidy) $ by tidy
@@ -217,20 +218,6 @@ end
 lemma cofork.condition (t : cofork f g) : f ≫ (cofork.π t) = g ≫ (cofork.π t) :=
 begin
   erw [t.w left, ← t.w right], refl
-end
-
-/--
-To construct an isomorphism between forks,
-it suffices to give an isomorphism between the cone points
-and check that it commutes with the `ι` morphisms.
--/
-def fork.ext {s t : fork f g} (i : s.X ≅ t.X) (w : s.ι = i.hom ≫ t.ι) : s ≅ t :=
-cones.ext i
-begin
-  rintro ⟨⟩,
-  { exact w, },
-  { rw [←fork.app_zero_left, ←fork.ι_eq_app_zero, w],
-    simp, },
 end
 
 /--
@@ -397,9 +384,18 @@ def fork.mk_hom {s t : fork f g} (k : s.X ⟶ t.X) (w : k ≫ t.ι = s.ι) : s �
   w' :=
   begin
     rintro ⟨_|_⟩,
-    exact w,
-    simpa using w =≫ f,
+    { exact w },
+    { simpa using w =≫ f },
   end }
+
+/--
+To construct an isomorphism between forks,
+it suffices to give an isomorphism between the cone points
+and check that it commutes with the `ι` morphisms.
+-/
+def fork.ext {s t : fork f g} (k : s.X ≅ t.X) (w : k.hom ≫ t.ι = s.ι) : s ≅ t :=
+{ hom := fork.mk_hom k.hom w,
+  inv := fork.mk_hom k.inv (by rw [← w, iso.inv_hom_id_assoc]) }
 
 variables (f g)
 
