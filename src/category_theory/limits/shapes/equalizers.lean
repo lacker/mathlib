@@ -431,6 +431,9 @@ abbreviation equalizer.fork : fork f g := limit.cone (parallel_pair f g)
 @[reassoc] lemma equalizer.condition : equalizer.ι f g ≫ f = equalizer.ι f g ≫ g :=
 fork.condition $ limit.cone $ parallel_pair f g
 
+def equalizer_is_equalizer : is_limit (fork.of_ι (equalizer.ι f g) (equalizer.condition f g)) :=
+is_limit.of_iso_limit (limit.is_limit _) (fork.ext (iso.refl _) (by simp))
+
 variables {f g}
 
 /-- A morphism `k : W ⟶ X` satisfying `k ≫ f = k ≫ g` factors through the equalizer of `f` and `g`

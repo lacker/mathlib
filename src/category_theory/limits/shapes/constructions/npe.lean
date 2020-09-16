@@ -1,7 +1,7 @@
 /-
--- Copyright (c) 2017 Scott Morrison. All rights reserved.
+-- Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 -- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison
+-- Authors: Bhavik Mehta
 -/
 import category_theory.limits.shapes.equalizers
 import category_theory.limits.shapes.finite_products
@@ -13,7 +13,10 @@ import category_theory.limits.preserves.shapes
 If a category has all products, and all equalizers, then it has all limits.
 Similarly, if it has all finite products, and all equalizers, then it has all finite limits.
 
-TODO: provide the dual result.
+If a functor preserves all products and equalizers, then it preserves all limits.
+Similarly, if it preserves all finite products and equalizers, then it preserves all finite limits.
+
+TODO: provide the dual results.
 -/
 
 open category_theory
@@ -103,6 +106,10 @@ lemma finite_limits_from_equalizers_and_finite_products
 λ J _ _, { has_limit := λ F, by exactI has_limit_of_equalizer_and_product F }
 
 variables {D : Type u₂} [category.{v} D]
+noncomputable theory
+
+section
+
 variables [has_limits_of_shape (discrete J) C]
           [has_limits_of_shape (discrete (Σ p : J × J, p.1 ⟶ p.2)) C]
           [has_equalizers C]
@@ -111,37 +118,58 @@ variables (G : C ⥤ D)
           [preserves_limits_of_shape (discrete J) G]
           [preserves_limits_of_shape (discrete (Σ p : J × J, p.1 ⟶ p.2)) G]
 
--- noncomputable def preserves_limit_of_preserves_equalizers_and_product :
---   preserves_limits_of_shape J G :=
--- { preserves_limit := λ K,
---   preserves_limit_of_preserves_limit_cone
---   (built_is_limit
---     (pi.lift (λ f, limit.π _ _ ≫ K.map f.2))
---     (pi.lift (λ f, limit.π _ f.1.2))
---     (by simp)
---     (by simp)
---     (limit.is_limit _) (limit.is_limit _) (limit.is_limit _))
---   begin
---     -- apply built_is_limit _ _ _ _ _ _ _,
---     apply is_limit.of_iso_limit (built_is_limit _ _ _ _ _ _ _) _,
---     -- { exact fan.mk (λ j, G.map (pi.π _ j)) },
---     -- { exact fan.mk (λ j, G.map (pi.π _ _)) },
+/-- If a functor preserves equalizers and the appropriate products, it preserves limits. -/
+def preserves_limit_of_preserves_equalizers_and_product :
+  preserves_limits_of_shape J G :=
+{ preserves_limit := λ K,
+  begin
+    let P := ∏ K.obj,
+    let Q := ∏ (λ (f : (Σ (p : J × J), p.fst ⟶ p.snd)), K.obj f.1.2),
+    let s : P ⟶ Q := pi.lift (λ f, limit.π _ _ ≫ K.map f.2),
+    let t : P ⟶ Q := pi.lift (λ f, limit.π _ f.1.2),
+    let I := equalizer s t,
+    let i : I ⟶ P := equalizer.ι s t,
+    apply preserves_limit_of_preserves_limit_cone
+      (built_is_limit s t (by simp) (by simp) (limit.is_limit _) (limit.is_limit _) (limit.is_limit _)),
+    refine is_limit.of_iso_limit (built_is_limit _ _ _ _ _ _ _) _,
+    { exact fan.mk (λ j, G.map (pi.π _ j)) },
+    { refine @fan.mk _ D _ (λ f, _) (G.obj Q) (λ f, _),
+      exact G.map (pi.π _ f) },
+    { apply G.map s },
+    { apply G.map t },
+    { intro f,
+      dsimp, simp only [←G.map_comp, limit.lift_π, fan.mk_π_app] },
+    { intro f,
+      dsimp, simp only [←G.map_comp, limit.lift_π, fan.mk_π_app] },
+    { apply fork.of_ι (G.map i) _,
+      simp only [← G.map_comp, equalizer.condition] },
+    { apply preserves_the_product },
+    { apply preserves_the_product },
+    { apply map_is_limit_of_preserves_of_is_limit, apply equalizer_is_equalizer },
+    refine cones.ext (iso.refl _) _,
+    intro j,
+    dsimp,
+    simp,
+  end }
+end
 
---     -- sorry,
---     -- -- { exact is_limit.lift (preserves_limit.preserves (limit.is_limit (discrete.functor K.obj))) { X := G.obj (pi_obj K.obj), π := { app := λ j, G.map (limit.π (discrete.functor K.obj) j) } } },
---     -- sorry,
---     -- -- { refine
---     -- --     is_limit.lift
---     -- --       (preserves_limit.preserves (limit.is_limit (discrete.functor K.obj)))
---     -- --       { X := G.obj _, π := { app := λ j, G.map (limit.π _ _) } } },
---     -- rintro ⟨⟨j₁, j₂⟩, f⟩,
---     -- dsimp,
---     -- sorry,
---     -- rintro ⟨⟨j₁, j₂⟩, f⟩,
---     -- dsimp,
+/-- If G preserves equalizers and finite products, it preserves finite limits. -/
+def preserves_finite_limits_of_preserves_equalizers_and_finite_products
+  [has_equalizers C] [has_finite_products C]
+  (G : C ⥤ D) [preserves_limits_of_shape walking_parallel_pair G]
+  [∀ J [fintype J], preserves_limits_of_shape (discrete J) G]
+  (J : Type v) [small_category J] [fin_category J] :
+preserves_limits_of_shape J G :=
+preserves_limit_of_preserves_equalizers_and_product G
 
---   end
-
--- }
+/-- If G preserves equalizers and products, it preserves all limits. -/
+def preserves_limits_of_preserves_equalizers_and_products
+  [has_equalizers C] [has_products C]
+  (G : C ⥤ D) [preserves_limits_of_shape walking_parallel_pair G]
+  [∀ J, preserves_limits_of_shape (discrete J) G]
+  (J : Type v) [small_category J] :
+preserves_limits G :=
+{ preserves_limits_of_shape := λ J 𝒥,
+  by exactI preserves_limit_of_preserves_equalizers_and_product G }
 
 end category_theory.limits

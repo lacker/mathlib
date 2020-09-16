@@ -50,11 +50,42 @@ end
 section preserve_products
 
 variables {J : Type v} (f : J → C)
-variables [has_products_of_shape J C] [has_products_of_shape J D]
-variables [preserves_limits_of_shape (discrete J) G]
+
 /--
-If `G` preserves limits, we have an isomorphism
-from the image of a product to the product of the images.
+(Implementation). The map of a fan is a limit iff the fan consisting of the mapped morphisms
+is a limit.
+This essentially lets us commute `fan.mk` with `functor.map_cone`.
+-/
+def fan_map_cone_limit {P : C} (g : Π j, P ⟶ f j) :
+  is_limit (G.map_cone (fan.mk g)) ≃ is_limit (fan.mk (λ j, G.map (g j)) : fan (λ j, G.obj (f j))) :=
+begin
+  refine (is_limit.postcompose_hom_equiv _ _).symm.trans (is_limit.equiv_iso_limit _),
+  refine discrete.nat_iso (λ j, iso.refl (G.obj (f j))),
+  refine cones.ext (iso.refl _) (λ j, by { dsimp, simp }),
+end
+
+/-- The property of reflecting products expressed in terms of fans. -/
+def reflects_is_product [reflects_limits_of_shape (discrete J) G] {P : C} (g : Π j, P ⟶ f j)
+  (t : is_limit (fan.mk (λ j, G.map (g j)) : fan (λ j, G.obj (f j)))) : is_limit (fan.mk g) :=
+reflects_limit.reflects ((fan_map_cone_limit _ _ _).symm t)
+
+/-- The property of preserving products expressed in terms of fans. -/
+def preserves_is_product [preserves_limits_of_shape (discrete J) G] {P : C} (g : Π j, P ⟶ f j)
+  (t : is_limit (fan.mk g)) :
+  is_limit (fan.mk (λ j, G.map (g j)) : fan (λ j, G.obj (f j))) :=
+fan_map_cone_limit _ _ _ (preserves_limit.preserves t)
+
+variables [has_products_of_shape J C] [preserves_limits_of_shape (discrete J) G]
+
+def preserves_the_product :
+  is_limit (fan.mk (λ (j : J), G.map (pi.π f j)) : fan (λ j, G.obj (f j))) :=
+preserves_is_product G f _ (product_is_product _)
+
+variables [has_products_of_shape J D]
+
+/--
+If `G` preserves limits, we have an isomorphism from the image of a product to the product of the
+images.
 -/
 -- TODO perhaps weaken the assumptions here, to just require the relevant limits?
 def preserves_products_iso :
@@ -80,16 +111,23 @@ open category_theory.limits.walking_parallel_pair
 
 variables {X Y Z : C} {f g : X ⟶ Y} {h : Z ⟶ X}
 
+/--
+(Implementation). The map of a fork is a limit iff the fork consisting of the mapped morphisms
+is a limit.
+This essentially lets us commute `fork.of_ι` with `functor.map_cone`.
+-/
 def equalizer_map_cone_limit (w : h ≫ f = h ≫ g) (hw : G.map h ≫ G.map f = G.map h ≫ G.map g) :
   is_limit (G.map_cone (fork.of_ι h w)) ≃ is_limit (fork.of_ι (G.map h) hw) :=
 (is_limit.postcompose_hom_equiv (diagram_iso_parallel_pair _) _).symm.trans
   (is_limit.equiv_iso_limit (fork.ext (iso.refl _) (by simp [fork.ι_eq_app_zero])))
 
+/-- The property of preserving equalizers expressed in terms of forks. -/
 def map_is_limit_of_preserves_of_is_limit [preserves_limit (parallel_pair f g) G] (w : h ≫ f = h ≫ g)
   (l : is_limit (fork.of_ι h w)) :
   is_limit (fork.of_ι (G.map h) (by simp only [←G.map_comp, w]) : fork (G.map f) (G.map g)) :=
 equalizer_map_cone_limit G w _ (preserves_limit.preserves l)
 
+/-- The property of reflecting equalizers expressed in terms of forks. -/
 def is_limit_of_reflects_of_map_is_limit [reflects_limit (parallel_pair f g) G] (w : h ≫ f = h ≫ g)
   (l : is_limit (fork.of_ι (G.map h) (by simp only [←G.map_comp, w]) : fork (G.map f) (G.map g))) :
   is_limit (fork.of_ι h w) :=
