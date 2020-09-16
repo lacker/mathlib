@@ -41,6 +41,10 @@ variables {F : J ⥤ C}
           (i : fork s t)
 
 include hs ht
+/--
+(Implementation) Given the appropriate product and equalizer cones, build the cone for `F` which is
+limiting if the given cones are also.
+-/
 @[simps]
 def build_limit : cone F :=
 { X := i.X,
@@ -48,6 +52,10 @@ def build_limit : cone F :=
          naturality' := λ j₁ j₂ f, by { dsimp, simp [← hs ⟨⟨_, _⟩, f⟩, i.condition_assoc, ht] } } }
 
 variable {i}
+/--
+(Implementation) Show the cone constructed in `build_limit` is limiting, provided the cones used in
+its construction are.
+-/
 def built_is_limit (t₁ : is_limit c₁) (t₂ : is_limit c₂) (hi : is_limit i) :
   is_limit (build_limit s t hs ht i) :=
 { lift := λ q,
