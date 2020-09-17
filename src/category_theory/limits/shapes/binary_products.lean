@@ -309,22 +309,25 @@ def coprod.desc' {W X Y : C} [has_binary_coproduct X Y] (f : X ⟶ W) (g : Y ⟶
 
 /-- If the products `W ⨯ X` and `Y ⨯ Z` exist, then every pair of morphisms `f : W ⟶ Y` and
     `g : X ⟶ Z` induces a morphism `prod.map f g : W ⨯ X ⟶ Y ⨯ Z`. -/
-abbreviation prod.map {W X Y Z : C} [has_limits_of_shape (discrete walking_pair) C]
+abbreviation prod.map {W X Y Z : C} [has_limit (pair W X)] [has_limit (pair Y Z)]
   (f : W ⟶ Y) (g : X ⟶ Z) : W ⨯ X ⟶ Y ⨯ Z :=
-lim.map (map_pair f g)
+lim_map (map_pair f g)
 
 /-- If the products `W ⨯ X` and `Y ⨯ Z` exist, then every pair of isomorphisms `f : W ≅ Y` and
     `g : X ≅ Z` induces a isomorphism `prod.map_iso f g : W ⨯ X ≅ Y ⨯ Z`. -/
-abbreviation prod.map_iso {W X Y Z : C} [has_limits_of_shape.{v} (discrete walking_pair) C]
+abbreviation prod.map_iso {W X Y Z : C} [has_limit (pair W X)] [has_limit (pair Y Z)]
   (f : W ≅ Y) (g : X ≅ Z) : W ⨯ X ≅ Y ⨯ Z :=
-lim.map_iso (map_pair_iso f g)
+begin
+end
 
 -- Note that the next two `simp` lemmas are proved by `simp`,
 -- but nevertheless are useful,
 -- because they state the right hand side in terms of `prod.map`
 -- rather than `lim.map`.
 @[simp] lemma prod.map_iso_hom {W X Y Z : C} [has_limits_of_shape.{v} (discrete walking_pair) C]
-  (f : W ≅ Y) (g : X ≅ Z) : (prod.map_iso f g).hom = prod.map f.hom g.hom := by simp
+  (f : W ≅ Y) (g : X ≅ Z) : (prod.map_iso f g).hom = prod.map f.hom g.hom :=
+begin
+end
 
 @[simp] lemma prod.map_iso_inv {W X Y Z : C} [has_limits_of_shape.{v} (discrete walking_pair) C]
   (f : W ≅ Y) (g : X ≅ Z) : (prod.map_iso f g).inv = prod.map f.inv g.inv := by simp
@@ -510,18 +513,20 @@ end prod_functor
 section prod_comparison
 variables {C} [has_binary_products C]
 
-variables {D : Type u₂} [category.{v} D] [has_binary_products D]
+variables {D : Type u₂} [category.{v} D]
 
 /--
 The product comparison morphism.
 
 In `category_theory/limits/preserves` we show this is always an iso iff F preserves binary products.
 -/
-def prod_comparison (F : C ⥤ D) (A B : C) : F.obj (A ⨯ B) ⟶ F.obj A ⨯ F.obj B :=
+def prod_comparison (F : C ⥤ D) (A B : C) [has_limit (pair (F.obj A) (F.obj B))] :
+  F.obj (A ⨯ B) ⟶ F.obj A ⨯ F.obj B :=
 prod.lift (F.map prod.fst) (F.map prod.snd)
 
 /-- Naturality of the prod_comparison morphism in both arguments. -/
-@[reassoc] lemma prod_comparison_natural (F : C ⥤ D) {A A' B B' : C} (f : A ⟶ A') (g : B ⟶ B') :
+@[reassoc] lemma prod_comparison_natural (F : C ⥤ D)  {A A' B B' : C} (f : A ⟶ A') (g : B ⟶ B')
+  [has_limit (pair (F.obj A) (F.obj B))] [has_limit (pair (F.obj A') (F.obj B'))] :
   F.map (prod.map f g) ≫ prod_comparison F A' B' = prod_comparison F A B ≫ prod.map (F.map f) (F.map g) :=
 begin
   rw [prod_comparison, prod_comparison, prod.lift_map],
