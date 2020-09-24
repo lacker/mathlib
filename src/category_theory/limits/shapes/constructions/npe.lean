@@ -41,7 +41,6 @@ variables {F : J ⥤ C}
           (i : fork s t)
 
 include hs ht
-set_option trace.simp_lemmas true
 /--
 (Implementation) Given the appropriate product and equalizer cones, build the cone for `F` which is
 limiting if the given cones are also.
